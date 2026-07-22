@@ -1,108 +1,62 @@
-# 🔧 Falcon Auto Fix
+# Falcon Auto Fix — Website + Booking + Owner Dashboard
 
-A full-stack automotive service booking and management platform built for **Falcon Auto Fix**, an auto repair shop in London, Ontario.
+Production-style starter for Falcon Auto Fix, Unit 7 - 120 Falcon Street, London, Ontario.
 
-The platform allows customers to view automotive services and book appointments online, while providing the shop with a secure administrative dashboard for managing appointments, manually booking customers, and blocking unavailable time slots.
+## Included
+- Responsive marketing website
+- Services page
+- Five-step online appointment request flow
+- Business-hour and service-duration based availability
+- Double-booking prevention
+- Customer, vehicle and appointment storage
+- Secure owner login with signed HTTP-only session cookie
+- Owner dashboard with counts and upcoming appointments
+- Five-week calendar view
+- Editable business hours and blocked-time closures
+- Editable service durations / online availability
+- Internal shop notes, estimates, invoice amounts and payment status
+- Appointment status workflow: Pending → Confirmed → In Progress → Completed / Cancelled
+- Customer CRM + completed service history
+- Service catalog and duration management in the database
+- Optional customer/owner email notifications via Resend
+- PostgreSQL + Prisma schema and seed data
+- Docker Compose local PostgreSQL
 
-## 🌐 Live Website
+## Important booking rule
+This app uses ONE shop schedule (no Bay 1 / Bay 2 / Bay 3). Any non-cancelled appointment blocks overlapping time. Service durations can differ.
 
-**Falcon Auto Fix:**  
-https://falcon-auto-fix-omega.vercel.app/
+## Local setup
+1. Install Node.js 20+ and Docker Desktop.
+2. Copy `.env.example` to `.env` and replace `SESSION_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
+3. Start PostgreSQL:
+   `docker compose up -d`
+4. Install packages:
+   `npm install`
+5. Generate Prisma client:
+   `npm run db:generate`
+6. Create the database migration:
+   `npx prisma migrate dev --name init`
+7. Seed the owner account, services and hours:
+   `npm run db:seed`
+8. Start:
+   `npm run dev`
+9. Open `http://localhost:3000` and `http://localhost:3000/admin`.
 
-## ✨ Features
+## Production deployment
+Recommended: Vercel + managed PostgreSQL (Neon, Supabase, Prisma Postgres, or another provider). Set all `.env.example` values in the hosting environment, migrate the production DB, then seed once.
 
-### Customer Experience
-- Online appointment booking
-- Real-time service and time-slot selection
-- Vehicle information collection
-- Appointment confirmation
-- Responsive mobile-friendly interface
-- Shop contact information and social media integration
+Current Next.js pin is 16.2.11 because the July 2026 Next.js security release specifically recommends 16.2.11 for Active LTS.
 
-### Admin Dashboard
-- Secure administrator authentication
-- View upcoming customer appointments
-- View customer and vehicle information
-- Track requested automotive services
-- Manually create appointments for phone and walk-in customers
-- Block unavailable dates and time slots
-- Prevent conflicting appointments
-- Manage appointment availability
+## Email
+Set `RESEND_API_KEY` and a verified `RESEND_FROM`. Without them, booking still works; email sending is silently skipped.
 
-## 🛠️ Tech Stack
+## Before launch
+- Confirm real business hours with the owner and update `prisma/seed.ts` / database.
+- Replace placeholder owner email.
+- Use a strong unique admin password and a random 32+ character session secret.
+- Add the actual domain and verified email sender.
+- Add privacy policy / terms appropriate for the business.
+- Run a full end-to-end test on mobile and desktop.
 
-**Frontend**
-- Next.js
-- React
-- TypeScript
-- CSS
-
-**Backend**
-- Next.js API Routes
-- Prisma ORM
-- PostgreSQL
-
-**Authentication**
-- Secure admin sessions
-- bcrypt password hashing
-- JOSE
-
-**Infrastructure**
-- Vercel
-- Neon PostgreSQL
-- GitHub
-
-## 🗄️ Database
-
-The application uses PostgreSQL with Prisma ORM to manage:
-
-- Users
-- Customers
-- Vehicles
-- Services
-- Appointments
-- Appointment services
-- Blocked time slots
-
-The booking system validates appointment availability before creating a reservation to help prevent scheduling conflicts.
-
-## 🔐 Admin System
-
-The administrative portal allows Falcon Auto Fix staff to manage bookings separately from the public customer-facing website.
-
-Administrators can:
-
-- Review scheduled appointments
-- Enter appointments received by phone or in person
-- Reserve unavailable periods
-- Manage the shop's daily schedule
-
-Sensitive credentials and database connection information are stored using environment variables and are not committed to the repository.
-
-## 🚀 Deployment
-
-The application is deployed through Vercel with a Neon-hosted PostgreSQL database.
-
-Production deployments are automatically triggered when changes are pushed to the `main` branch.
-
-## 📍 Falcon Auto Fix
-
-**120 Falcon St**  
-London, Ontario N5W 4Z1
-
-📞 (548) 689-9097  
-📧 falconauto47@gmail.com  
-📸 Instagram: @falcon.auto.fix
-
-### QUALITY SERVICE. KEEPING YOU ON THE ROAD.
-
-## 👨‍💻 Developer
-
-Designed and developed by **Kareem Rahme**.
-
-- GitHub: Krahme1
-- LinkedIn: kareemrahme
-
----
-
-Built for a real-world automotive repair business to streamline appointment scheduling and shop operations.
+## Deliberately not hard-wired
+Payments and Google Calendar require the business's own Stripe/Google credentials and policy decisions. The database already has estimate, invoice and payment-status fields, so those can be connected without redesigning the core booking model.
