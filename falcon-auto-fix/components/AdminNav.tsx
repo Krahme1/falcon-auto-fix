@@ -1,0 +1,2 @@
+import Link from "next/link";
+export function AdminNav(){return <aside className="adminNav"><Link className="brand" href="/admin"><span>FALCON</span><small>ADMIN</small></Link><nav><Link href="/admin">Dashboard</Link><Link href="/admin/appointments">Appointments</Link><Link href="/admin/calendar">Calendar</Link><Link href="/admin/customers">Customers</Link><Link href="/admin/services">Services</Link><Link href="/admin/settings">Hours & blocks</Link><Link href="/">View website</Link></nav></aside>}

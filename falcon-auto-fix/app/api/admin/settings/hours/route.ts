@@ -1,0 +1,2 @@
+import { NextRequest,NextResponse } from "next/server";import { getCurrentUser } from "@/lib/auth";import { prisma } from "@/lib/db";
+export async function PUT(req:NextRequest){if(!await getCurrentUser())return NextResponse.json({error:"Unauthorized"},{status:401});const {hours}=await req.json();for(const h of hours||[]){if(!/^\d{2}:\d{2}$/.test(h.openTime)||!/^\d{2}:\d{2}$/.test(h.closeTime))continue;await prisma.businessHour.update({where:{id:h.id},data:{isOpen:Boolean(h.isOpen),openTime:h.openTime,closeTime:h.closeTime}})}return NextResponse.json({ok:true})}

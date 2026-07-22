@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { prisma } from "@/lib/db";
+export default async function Home(){
+ const services=await prisma.service.findMany({where:{active:true},orderBy:{sortOrder:"asc"},take:6});
+ return <>
+ <section className="hero"><div className="container heroGrid"><div><p className="eyebrow">LONDON, ONTARIO • LOCAL AUTO REPAIR</p><h1>Honest repairs.<br/>Clear answers.<br/>Back on the road.</h1><p className="lead">Repairs, diagnostics, maintenance, tires, brakes and oil changes from certified technicians at Falcon Auto Fix.</p><div className="actions"><Link className="button" href="/book">Book an Appointment</Link><a className="button ghost" href="tel:+15486899097">Call (548) 689-9097</a></div></div><div className="heroCard"><span className="badge">Now booking</span><h2>Your car deserves a proper fix.</h2><p>Tell us what your vehicle needs. Pick a time. We’ll confirm your appointment.</p><div className="metric"><strong>120 Falcon St</strong><span>London, ON</span></div><div className="metric"><strong>Mon–Fri</strong><span>8 AM–8 PM</span></div></div></div></section>
+ <section className="section"><div className="container"><p className="eyebrow">SERVICES</p><h2>Everything your vehicle needs.</h2><div className="cards">{services.map(s=><article className="card" key={s.id}><h3>{s.name}</h3><p>{s.description}</p><span>{s.durationMinutes} min booking window</span></article>)}</div><Link className="textLink" href="/services">View all services →</Link></div></section>
+ <section className="section dark"><div className="container split"><div><p className="eyebrow">HOW IT WORKS</p><h2>Booking should be the easy part.</h2></div><ol className="steps"><li><b>01</b><span>Choose your service</span></li><li><b>02</b><span>Add vehicle details</span></li><li><b>03</b><span>Pick an available time</span></li><li><b>04</b><span>We confirm your appointment</span></li></ol></div></section>
+ </>}

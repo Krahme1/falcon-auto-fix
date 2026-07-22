@@ -1,0 +1,12 @@
+"use client";
+import { useState } from "react";
+type Hour={id:string;dayOfWeek:number;isOpen:boolean;openTime:string;closeTime:string};
+const names=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+export default function SettingsClient({hours,blocks}:{hours:Hour[];blocks:{id:string;startTime:string;endTime:string;reason:string|null}[]}){
+ const [rows,setRows]=useState(hours),[start,setStart]=useState(""),[end,setEnd]=useState(""),[reason,setReason]=useState("");
+ async function saveHours(){await fetch("/api/admin/settings/hours",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({hours:rows})});location.reload()}
+ async function addBlock(){if(!start||!end)return;await fetch("/api/admin/blocked-time",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({start,end,reason})});location.reload()}
+ async function remove(id:string){await fetch(`/api/admin/blocked-time?id=${id}`,{method:"DELETE"});location.reload()}
+ return <><h2>Business hours</h2><div className="hoursList">{rows.sort((a,b)=>a.dayOfWeek-b.dayOfWeek).map((h,i)=><div className="hourRow" key={h.id}><b>{names[h.dayOfWeek]}</b><label className="inlineCheck"><input type="checkbox" checked={h.isOpen} onChange={e=>setRows(r=>r.map(x=>x.id===h.id?{...x,isOpen:e.target.checked}:x))}/> Open</label><input type="time" disabled={!h.isOpen} value={h.openTime} onChange={e=>setRows(r=>r.map(x=>x.id===h.id?{...x,openTime:e.target.value}:x))}/><span>to</span><input type="time" disabled={!h.isOpen} value={h.closeTime} onChange={e=>setRows(r=>r.map(x=>x.id===h.id?{...x,closeTime:e.target.value}:x))}/></div>)}</div><button className="button" onClick={saveHours}>Save hours</button>
+ <h2 className="topGap">Block off time</h2><p className="muted">Use this for holidays, appointments, closures, or any time online booking should be unavailable.</p><div className="blockForm"><input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)}/><input type="datetime-local" value={end} onChange={e=>setEnd(e.target.value)}/><input placeholder="Reason" value={reason} onChange={e=>setReason(e.target.value)}/><button onClick={addBlock}>Add block</button></div><div className="blockList">{blocks.map(b=><div key={b.id}><span>{new Date(b.startTime).toLocaleString()} → {new Date(b.endTime).toLocaleString()}</span><span>{b.reason}</span><button onClick={()=>remove(b.id)}>Remove</button></div>)}</div></>
+}

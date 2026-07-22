@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: falcon
+      POSTGRES_PASSWORD: falcon
+      POSTGRES_DB: falcon_auto_fix
+    ports:
+      - "5432:5432"
+    volumes:
+      - falcon_pgdata:/var/lib/postgresql/data
+volumes:
+  falcon_pgdata:
