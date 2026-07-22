@@ -1,8 +1,6 @@
 export const BUSINESS_TZ = "America/Toronto";
 
 export function torontoDateTime(date: string, time: string) {
-  // Build an ISO offset appropriate for Ontario. Modern deployment runtimes support Intl,
-  // but for booking persistence we convert a local wall-clock time through Intl parts.
   const [y,m,d] = date.split("-").map(Number);
   const [hh,mm] = time.split(":").map(Number);
   const approx = new Date(Date.UTC(y, m-1, d, hh, mm));
@@ -12,6 +10,11 @@ export function torontoDateTime(date: string, time: string) {
   const sign = match?.[1] === "-" ? -1 : 1;
   const offsetMinutes = match ? sign * (Number(match[2]) * 60 + Number(match[3] || 0)) : -240;
   return new Date(Date.UTC(y, m-1, d, hh, mm) - offsetMinutes * 60_000);
+}
+
+export function torontoDateTimeLocal(value:string){
+  const [date,time="00:00"] = value.split("T");
+  return torontoDateTime(date,time.slice(0,5));
 }
 
 export function formatLocal(dt: Date) {
