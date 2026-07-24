@@ -11,4 +11,4 @@ export function Footer(){return <footer><div className="container footerGrid">
     <a className="contactLink" href="https://www.instagram.com/falcon.auto.fix/" target="_blank" rel="noreferrer"><InstagramIcon/><span>@falcon.auto.fix</span></a>
     <p>Repairs • Diagnostics • Maintenance</p>
   </div>
-</div></footer>}
+</div><div className="container footerBottom"><span>© 2026 Falcon Auto Fix. All rights reserved.</span><a href="https://github.com/Krahme1" target="_blank" rel="noreferrer">Developed by Kareem Rahme</a></div></footer>}

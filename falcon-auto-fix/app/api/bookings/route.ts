@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"; import { prisma } from "@/lib/db"; import { torontoDateTime,formatLocal } from "@/lib/time"; import { sendMail } from "@/lib/email";
+import { NextRequest, NextResponse } from "next/server"; import { prisma } from "@/lib/db"; import { torontoDateTime,formatLocal } from "@/lib/time"; import { sendMail } from "@/lib/email"; import { sendSms } from "@/lib/sms";
 export async function POST(req:NextRequest){
  try{const b=await req.json(); const required=["serviceId","date","time","year","make","model","name","phone"]; if(required.some(k=>!String(b[k]||"").trim()))return NextResponse.json({error:"Please complete all required fields."},{status:400});
  const service=await prisma.service.findUnique({where:{id:b.serviceId}}); if(!service?.active)return NextResponse.json({error:"Service is unavailable."},{status:400});
@@ -7,7 +7,9 @@ export async function POST(req:NextRequest){
  const result=await prisma.$transaction(async tx=>{let customer=await tx.customer.findFirst({where:{OR:[...(b.email?[{email:b.email}]:[]),{phone:b.phone}]}}); if(!customer)customer=await tx.customer.create({data:{name:b.name,email:b.email||null,phone:b.phone}}); else customer=await tx.customer.update({where:{id:customer.id},data:{name:b.name,email:b.email||customer.email,phone:b.phone}});
  const vehicle=await tx.vehicle.create({data:{customerId:customer.id,year:Number(b.year),make:b.make,model:b.model,mileage:b.mileage?Number(b.mileage):null,plate:b.plate||null,vin:b.vin||null}});
  return tx.appointment.create({data:{customerId:customer.id,vehicleId:vehicle.id,serviceId:service.id,startTime:start,endTime:end,description:b.description||null},include:{customer:true,vehicle:true,service:true}})});
- const when=formatLocal(result.startTime); if(result.customer.email)await sendMail({to:result.customer.email,subject:"Falcon Auto Fix — appointment request received",html:`<h2>We received your appointment request.</h2><p>${result.service?.name}</p><p>${when}</p><p>${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}</p><p>We will contact you after the appointment is confirmed.</p>`});
+ const when=formatLocal(result.startTime); const customerText=`Falcon Auto Fix received your appointment request for ${result.service?.name} on ${when}. We will contact you once it is confirmed.`;
+ if(result.customer.email)await sendMail({to:result.customer.email,subject:"Falcon Auto Fix — appointment request received",html:`<h2>We received your appointment request.</h2><p>${result.service?.name}</p><p>${when}</p><p>${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}</p><p>We will contact you after the appointment is confirmed.</p>`});
+ await sendSms({to:result.customer.phone,body:customerText});
  const owner=process.env.BUSINESS_EMAIL; if(owner)await sendMail({to:owner,subject:`New booking: ${result.customer.name} — ${result.service?.name}`,html:`<h2>New appointment request</h2><p>${result.customer.name} • ${result.customer.phone}</p><p>${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}</p><p>${result.service?.name} • ${when}</p><p>${result.description||"No description provided."}</p>`});
  return NextResponse.json({id:result.id},{status:201});
  }catch(e){console.error(e);return NextResponse.json({error:"Unable to create appointment."},{status:500})}

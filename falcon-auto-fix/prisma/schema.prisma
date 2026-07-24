@@ -10,7 +10,10 @@ datasource db {
 enum AppointmentStatus {
   PENDING
   CONFIRMED
+  CHECKED_IN
   IN_PROGRESS
+  WAITING_FOR_PARTS
+  READY_FOR_PICKUP
   COMPLETED
   CANCELLED
 }
@@ -59,6 +62,7 @@ model Vehicle {
   appointments Appointment[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  @@index([plate])
 }
 
 model Service {
@@ -75,25 +79,38 @@ model Service {
 }
 
 model Appointment {
-  id            String            @id @default(cuid())
-  customerId    String
-  vehicleId     String
-  serviceId     String?
-  startTime     DateTime
-  endTime       DateTime
-  description   String?
-  internalNotes String?
-  status        AppointmentStatus @default(PENDING)
-  estimateCents Int?
-  invoiceCents  Int?
-  paymentStatus PaymentStatus     @default(UNPAID)
-  customer      Customer          @relation(fields: [customerId], references: [id])
-  vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
-  service       Service?          @relation(fields: [serviceId], references: [id])
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id               String            @id @default(cuid())
+  customerId       String
+  vehicleId        String
+  serviceId        String?
+  startTime        DateTime
+  endTime          DateTime
+  description      String?
+  internalNotes    String?
+  status           AppointmentStatus @default(PENDING)
+  estimateCents    Int?
+  invoiceCents     Int?
+  paymentStatus    PaymentStatus     @default(UNPAID)
+  paymentMethod    String?
+  reminderSentAt   DateTime?
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  vehicle          Vehicle           @relation(fields: [vehicleId], references: [id])
+  service          Service?          @relation(fields: [serviceId], references: [id])
+  photos           JobPhoto[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   @@index([startTime])
   @@index([status])
+}
+
+model JobPhoto {
+  id            String      @id @default(cuid())
+  appointmentId String
+  url           String
+  caption       String?
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  @@index([appointmentId])
 }
 
 model BusinessHour {

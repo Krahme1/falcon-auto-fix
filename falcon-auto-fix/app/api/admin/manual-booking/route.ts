@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { torontoDateTime } from "@/lib/time";
+import { torontoDateTime, formatLocal } from "@/lib/time";
+import { sendMail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 
 export async function POST(req:NextRequest){
   if(!await getCurrentUser()) return NextResponse.json({error:"Unauthorized"},{status:401});
@@ -26,8 +28,12 @@ export async function POST(req:NextRequest){
       let vehicle=await tx.vehicle.findFirst({where:{customerId:customer.id,year:Number(b.year),make:{equals:b.make,mode:"insensitive"},model:{equals:b.model,mode:"insensitive"}}});
       if(!vehicle) vehicle=await tx.vehicle.create({data:{customerId:customer.id,year:Number(b.year),make:b.make,model:b.model,mileage:b.mileage?Number(b.mileage):null,plate:b.plate||null,vin:b.vin||null}});
       else vehicle=await tx.vehicle.update({where:{id:vehicle.id},data:{mileage:b.mileage?Number(b.mileage):vehicle.mileage,plate:b.plate||vehicle.plate,vin:b.vin||vehicle.vin}});
-      return tx.appointment.create({data:{customerId:customer.id,vehicleId:vehicle.id,serviceId:service.id,startTime:start,endTime:end,status:"CONFIRMED",description:b.description||null,internalNotes:b.internalNotes||"Booked manually by admin (phone/in-person)."}});
+      const appointment=await tx.appointment.create({data:{customerId:customer.id,vehicleId:vehicle.id,serviceId:service.id,startTime:start,endTime:end,status:"CONFIRMED",description:b.description||null,internalNotes:b.internalNotes||"Booked manually by admin (phone/in-person)."}});
+      return {appointment,customer,vehicle};
     });
-    return NextResponse.json({id:result.id},{status:201});
+    const when=formatLocal(start); const text=`Falcon Auto Fix: Your ${service.name} appointment is confirmed for ${when}. Call (548) 689-9097 if you need to make a change.`;
+    if(result.customer.email) await sendMail({to:result.customer.email,subject:"Falcon Auto Fix — appointment confirmed",html:`<h2>Your appointment is confirmed.</h2><p>${service.name} • ${when}</p><p>${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}</p><p>Falcon Auto Fix • (548) 689-9097</p>`});
+    await sendSms({to:result.customer.phone,body:text});
+    return NextResponse.json({id:result.appointment.id},{status:201});
   }catch(e){console.error(e);return NextResponse.json({error:"Unable to create the manual appointment."},{status:500})}
 }

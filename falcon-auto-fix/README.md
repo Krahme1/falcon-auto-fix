@@ -60,3 +60,27 @@ Set `RESEND_API_KEY` and a verified `RESEND_FROM`. Without them, booking still w
 
 ## Deliberately not hard-wired
 Payments and Google Calendar require the business's own Stripe/Google credentials and policy decisions. The database already has estimate, invoice and payment-status fields, so those can be connected without redesigning the core booking model.
+
+## Operations features
+
+The admin system also supports:
+
+- Customer and vehicle search by name, phone, plate, make, or model
+- Full customer service history
+- Shop workflow statuses from check-in through ready-for-pickup
+- Internal notes, estimates, invoices, payment state, and payment method
+- Printable job records
+- Optional vehicle/job photo uploads through Vercel Blob
+- Optional email notifications through Resend
+- Optional SMS notifications through Twilio
+- One-click sending of due 24-hour appointment reminders
+
+The public site includes Google review/directions links, an embedded map, mobile call/booking actions, and an appointment-request disclaimer.
+
+### Optional production environment variables
+
+`RESEND_API_KEY`, `RESEND_FROM`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, and `BLOB_READ_WRITE_TOKEN` enable the optional communication and photo-storage features.
+
+---
+
+© 2026 Falcon Auto Fix. Website developed by **Kareem Rahme**.
